@@ -33,7 +33,7 @@ require_once(dirname(__FILE__).'/mod_form.php');
 
 $id = required_param('id', PARAM_INT); // course_module ID
 $ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
-$action  = optional_param('action', '', PARAM_ACTION);  //action(vote,newround)
+$action  = optional_param('action', '', PARAM_ALPHANUMEXT);  //action(vote,newround)
 $roundid = optional_param('round', -1, PARAM_INT);  //round id
 
 // Construct hotquestion instance
@@ -41,15 +41,24 @@ $hq = new mod_hotquestion($id, $roundid);
 
 // Confirm login
 require_login($hq->course, true, $hq->cm);
-add_to_log($hq->course->id, 'hotquestion', 'view', "view.php?id={$hq->cm->id}", $hq->instance->name, $hq->cm->id);
-$context = get_context_instance(CONTEXT_MODULE, $hq->cm->id);
+$context = context_module::instance($hq->cm->id);
+//add_to_log($hq->course->id, 'hotquestion', 'view', "view.php?id={$hq->cm->id}", $hq->instance->name, $hq->cm->id);
+// Trigger module viewed event.
+$event = \mod_hotquestion\event\course_module_viewed::create(array(
+    'objectid' => $hq->instance->id,
+    'context' => $context,
+));
+//$event->add_record_snapshot('course', $course);
+//$event->add_record_snapshot('course_modules', $cm);
+//$event->add_record_snapshot('hotquestion', $hq);
+$event->trigger();
 
 // Set page
 if (!$ajax) {
     $PAGE->set_url('/mod/hotquestion/view.php', array('id' => $hq->cm->id));
     $PAGE->set_title($hq->instance->name);
     $PAGE->set_heading($hq->course->shortname);
-    $PAGE->set_button(update_module_button($hq->cm->id, $hq->course->id, get_string('modulename', 'hotquestion')));
+    //$PAGE->set_button(update_module_button($hq->cm->id, $hq->course->id, get_string('modulename', 'hotquestion')));
     $PAGE->set_context($context);
     $PAGE->set_cm($hq->cm);
     $PAGE->add_body_class('hotquestion');
@@ -76,10 +85,10 @@ if (has_capability('mod/hotquestion:ask', $context)) {
     $mform = new hotquestion_form(null, array($hq->instance->anonymouspost, $hq->cm));
     if ($fromform=$mform->get_data()) {
         if (!$hq->add_new_question($fromform)) {
-            redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
+            redirect('view.php?id='.$hq->cm->id, get_string('invalidquestion', 'hotquestion'));
         }
         if (!$ajax) {
-            redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
+            redirect('view.php?id='.$hq->cm->id, get_string('questionsubmitted', 'hotquestion'));
         }
     }
 }

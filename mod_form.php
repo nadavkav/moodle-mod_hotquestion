@@ -35,7 +35,7 @@ class mod_hotquestion_mod_form extends moodleform_mod {
 
     function definition() {
 
-        global $COURSE;
+        global $COURSE, $CFG;
         $mform =& $this->_form;
 
 //-------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         if (!empty($CFG->formatstringstriptags)) {
             $mform->setType('name', PARAM_TEXT);
         } else {
-            $mform->setType('name', PARAM_CLEAN);
+            $mform->setType('name', PARAM_RAW);
         }
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
@@ -84,6 +84,7 @@ class hotquestion_form extends moodleform {
         $mform->addElement('textarea', 'question', get_string('inputquestion', 'hotquestion'), 'wrap="virtual" rows="3" cols="50"');
         $mform->setType('question', PARAM_TEXT);
         $mform->addElement('hidden', 'id', $cm->id, 'id="hotquestion_courseid"');
+        $mform->setType('id', PARAM_INT);
 
         $submitgroup = array();
         $submitgroup[] =& $mform->createElement('submit', 'submitbutton', get_string('post'));

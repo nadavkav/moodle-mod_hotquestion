@@ -31,6 +31,7 @@ $string['anonymous'] = 'Anonymous';
 $string['authorinfo'] = 'Posted by {$a->user} at {$a->time}';
 $string['connectionerror'] = 'Connection error';
 $string['displayasanonymous'] = 'Display as anonymous';
+$string['early'] = 'Earlier {$a}';
 $string['heat'] = 'Heat';
 $string['hotquestionintro'] = 'Topic';
 $string['hotquestionname'] = 'Activity Name';

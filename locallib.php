@@ -71,6 +71,7 @@ class mod_hotquestion {
      */
     public function add_new_question($fromform) {
         global $USER, $CFG, $DB;
+        $data = new stdClass();
         $data->hotquestion = $this->instance->id;
         $data->content = trim($fromform->question);
         $data->userid = $USER->id;
@@ -81,8 +82,22 @@ class mod_hotquestion {
             $data->userid = $CFG->siteguest;
         }
         if (!empty($data->content)) {
-            $DB->insert_record('hotquestion_questions', $data);
-            add_to_log($this->course->id, "hotquestion", "add question", "view.php?id={$this->cm->id}", $data->content, $this->cm->id);
+            $hqid = $DB->insert_record('hotquestion_questions', $data);
+            //add_to_log($this->course->id, "hotquestion", "add question", "view.php?id={$this->cm->id}", $data->content, $this->cm->id);
+            // Trigger event and update completion (if entry was created).
+            $context = context_module::instance($this->instance->id);
+            $eventparams = array(
+                'context' => $context,
+                'objectid' => $data->hotquestion,
+                'other' => array('concept' => $data->content)
+            );
+            //if ($isnewquestion) {
+                $event = \mod_hotquestion\event\question_added::create($eventparams);
+            //} else {
+            //    $event = \mod_hotquestion\event\question_updated::create($eventparams);
+            //}
+            //$event->add_record_snapshot('hotquestion', $data);
+            $event->trigger();
             return true;
         } else {
             return false;
@@ -100,8 +115,10 @@ class mod_hotquestion {
         global $DB, $USER;
         $question = $DB->get_record('hotquestion_questions', array('id'=>$question));
         if ($question && $this->can_vote_on($question)) {
-            add_to_log($this->course->id, 'hotquestion', 'update vote', "view.php?id={$this->cm->id}", $question->id, $this->cm->id);
+            // TODO: migrate to events
+            //add_to_log($this->course->id, 'hotquestion', 'update vote', "view.php?id={$this->cm->id}", $question->id, $this->cm->id);
             if (!$this->has_voted($question->id)) {
+                $votes = new stdClass();
                 $votes->question = $question->id;
                 $votes->voter = $USER->id;
                 $DB->insert_record('hotquestion_votes', $votes);
@@ -143,15 +160,18 @@ class mod_hotquestion {
     public function add_new_round() {
         global $DB;
         // Close the latest round
-        $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$this->instance->id), 'id DESC', '*', 0, 1));
+        $hotquestion_rounds = $DB->get_records('hotquestion_rounds', array('hotquestion'=>$this->instance->id), 'id DESC', '*', 0, 1);
+        $old = array_pop($hotquestion_rounds);
         $old->endtime = time();
         $DB->update_record('hotquestion_rounds', $old);
         // Open a new round
+        $new = new stdClass();
         $new->hotquestion = $this->instance->id;
         $new->starttime = time();
         $new->endtime = 0;
         $rid = $DB->insert_record('hotquestion_rounds', $new);
-        add_to_log($this->course->id, 'hotquestion', 'add round', "view.php?id={$this->cm->id}&round=$rid", $rid, $this->cm->id);
+        // TODO: migrate to events
+        //add_to_log($this->course->id, 'hotquestion', 'add round', "view.php?id={$this->cm->id}&round=$rid", $rid, $this->cm->id);
     }
 
     /**
@@ -166,6 +186,7 @@ class mod_hotquestion {
         $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id ASC');
         if (empty($rounds)) {
             // Create the first round
+            $round = new stdClass();
             $round->starttime = time();
             $round->endtime = 0;
             $round->hotquestion = $this->instance->id;

@@ -62,15 +62,15 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         //  Print next/prev round bar
         if ($this->hotquestion->get_prev_round() != null) {
             $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->hotquestion->get_prev_round()->id));
-            $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed_rtl', get_string('previousround', 'hotquestion')), array('class' => 'toolbutton'));
+            $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed', get_string('previousround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
-            $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty_rtl', ''), array('class' => 'dis_toolbutton'));
+            $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty', ''), array('class' => 'dis_toolbutton'));
         }
         if ($this->hotquestion->get_next_round() != null) {
             $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->hotquestion->get_next_round()->id));
-            $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed', get_string('nextround', 'hotquestion')), array('class' => 'toolbutton'));
+            $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed_rtl', get_string('nextround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
-            $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty', ''), array('class' => 'dis_toolbutton'));
+            $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty_rtl', ''), array('class' => 'dis_toolbutton'));
         }
 
         // Print new round bar
@@ -117,6 +117,8 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
             $table->align = array ('left', 'center');
             $table->head = array(get_string('question', 'hotquestion'), get_string('heat', 'hotquestion'));
 
+            $formatoptions = new stdClass();
+            $authorinfo = new stdClass();
             foreach ($questions as $question) {
                 $line = array();
                 $formatoptions->para  = false;
@@ -124,12 +126,12 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 $user = $DB->get_record('user', array('id'=>$question->userid));
 
                 if ($question->anonymous) {
-                    $a->user = get_string('anonymous', 'hotquestion');
+                    $authorinfo->user = get_string('anonymous', 'hotquestion');
                 } else {
-                    $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $this->hotquestion->course->id . '">' . fullname($user) . '</a>';
+                    $authorinfo->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $this->hotquestion->course->id . '">' . fullname($user) . '</a>';
                 }
-                $a->time = userdate($question->time).'&nbsp('.get_string('early', 'assignment', format_time(time() - $question->time)) . ')';
-                $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'</div>';
+                $authorinfo->time = userdate($question->time).'&nbsp('.get_string('early', 'hotquestion', format_time(time() - $question->time)) . ')';
+                $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $authorinfo).'</div>';
                 $line[] = $content.$info;
                 $heat = $question->votecount;
 

@@ -17,10 +17,7 @@
 
 
 /**
- * Defines the version of newmodule
- *
- * This code fragment is called by moodle_needs_upgrading() and
- * /admin/index.php
+ * Hebrew strings for hotquestion
  *
  * @package   mod_hotquestion
  * @copyright 2011 Sun Zhigang
@@ -29,9 +26,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016021601;  // The current module version (Date: YYYYMMDDXX)
-$plugin->requires  = 2010112400;  // Requires this Moodle version
-$plugin->cron      = 0;           // Period for cron to check this module (secs)
-$plugin->component = 'mod_hotquestion';
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = "2.2 beta"; // User-friendly version number
+$string['anonymous'] = 'משתמש לא מזוהה';
+$string['authorinfo'] = 'פורסם על־ידי {$a->user} ב: {$a->time}';
+$string['early'] = 'לפני {$a}';
